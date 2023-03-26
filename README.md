@@ -1,9 +1,9 @@
 # thermoweter
 Meten is weten!
 
-*Dependencies*
--time
--socket
--threading
--csv
--micropython
+**Dependencies**/n
+-time/n
+-socket/n
+-threading/n
+-csv/n
+-micropython/n
