@@ -117,8 +117,8 @@ wlan = network.WLAN(network.STA_IF)
 wlan.active(True)
 
 # Fill in your network name (ssid) and password here:
-ssid = 'VRV9517CF92FA'
-password = 'KQit6VkDFXch'
+ssid = input("ssid: ")
+password = input("password: ")
 wlan.connect(ssid, password)
 
 print("connected!")
