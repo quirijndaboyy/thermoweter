@@ -1,0 +1,183 @@
+<html lang="NL">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+        body { 
+          margin: 0;
+          font-family: Arial, Helvetica, sans-serif;
+        }
+        .header {
+          overflow: hidden;
+          background-color: #6495ED;
+          padding: 50px 30px;
+        }
+        
+        .header a {
+          font-size: 40px;
+          font-weight: bold;
+          color: black;
+        }
+        @media screen and (max-width: 500px) {
+          .header a {
+            font-size: 30px;
+          }
+        }
+        </style>
+        </head>
+        
+        <div class="header">
+          <a class="logo" >Huisenergie</a>
+        </div>
+    <div id="charts">
+        </div>
+      <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+        <script>
+            var pico =[]
+            var indexes = []
+            function getdata(tableData) {
+                var array = tableData.split("\n").map(function (line) {
+                    return line.split(",");
+                });
+                array.pop()
+                var arrayLength = array.length;
+
+                for (var i = 0; i < arrayLength; i++) {
+                    if (!(isNaN(array[i][3]))) {
+                        array[i][3] = Math.round(array[i][3]);
+                    }
+                    array[i][0] = array[i][0] *1000
+                }
+            
+                for (var i = 0; i < arrayLength; i++) {
+                    var index = 0
+                    index = String(Math.round(array[i][3]))
+                    if(!(indexes.includes(index))){
+                        indexes.push(index)
+                    }
+                }
+                for (var i = 0; i < indexes.length; i++) {
+                    var z = indexes[i];
+                    var piconame = "pico"+z
+                    window[piconame] = new Array()
+                    window[piconame+"time"] = new Array()
+                    window[piconame+"temp"] = new Array()
+                    window[piconame+"licht"] = new Array()
+                }
+
+                for (var i = 0; i < arrayLength; i++) {
+                    var arrayLength2 = array[i].length -1;
+                    for (var t = 0; t < arrayLength; t++) {
+                        piconame = "pico"+String(array[i][3])
+                        if(t ==0){
+                            piconame1 = piconame+"time";
+                            var indexlength = window[piconame1].length;
+                            window[piconame1][indexlength] = Number(array[i][t]);
+                        }
+                        else if(t==1){
+                            piconame2 = piconame+"temp";
+                            var indexlength = window[piconame2].length;
+                            window[piconame2][indexlength] = [Number(array[i][0]),Number(array[i][t])];
+                        }
+                        else if(t==2){
+                            piconame3 = piconame+"licht";
+                            var indexlength = window[piconame3].length;
+                            window[piconame3][indexlength] = [Number(array[i][0]),Number(array[i][t])];
+                        }
+                    
+                }
+                }
+                for (var i = 0; i < indexes.length; i++) {
+                    var z = indexes[i];
+                    var piconame = "pico"+z
+                    window[piconame][0] = window[piconame+"time"]
+                    window[piconame][1] = window[piconame+"temp"]
+                    window[piconame][2] = window[piconame+"licht"]
+                    var indexlength = pico.length;
+                    window["pico"][indexlength] = window[piconame]
+                }
+            }
+            $.ajax({
+                type: "GET",
+                url: "data.csv",
+                async: false,
+                success: function (data) {
+                    getdata(data)
+                }
+            });
+            function creategraph(index){
+                var minx
+                var maxx
+                if(pico[index][1][0][0]<pico[index][2][0][0]){
+                    minx = pico[index][1][0][0]
+                }
+                else{
+                    minx = pico[index][2][0][0]
+                }
+                length1 = pico[index][1].length -1
+                length2 = pico[index][2].length -1
+                if(pico[index][1][length1][0]<pico[index][2][length2][0]){
+                    maxx = pico[index][2][length2][0]
+                }
+                else{
+                    maxx = pico[index][1][length1][0]
+                }
+                var options = {
+                    chart: {
+                        toolbar:{show:false},
+                        type: 'line',
+                    },
+                    series: [{
+                        name: 'temperatuur',
+                        data: pico[index][1],
+                    },
+                    {
+                        name: 'luchtvochtigheid',
+                        data: pico[index][2],
+                    }],
+                    xaxis: {
+                        type: 'datetime',
+                        min: minx,
+                        max: maxx,
+                    },
+                    yaxis: [{title:{
+                        text: "temperatuur (Celcius)",
+                        style: {
+                        fontSize:  '1.5vw',
+                        }
+                    }
+                    },{
+                    opposite: true,
+                    title:{
+                        text: "luchtvochtigheid (%)",
+                        style: {
+                        fontSize:  '1.5vw',
+                        }
+                    }
+                    }
+                    ],
+                    stroke: {
+                        curve: 'smooth',
+                        }
+                    }
+                var spacer = document.createElement("div");
+                spacer.style.height = "4vw";
+                document.getElementById("charts").appendChild(spacer);
+                var chartinfo = document.createElement("h1");
+                chartinfo.style.fontSize = "4vw";
+                chartinfo.innerText = indexes[index]
+                chartinfo.style.textAlign = "center";
+                document.getElementById("charts").appendChild(chartinfo);
+                var graph = document.createElement("div");
+                document.getElementById("charts").appendChild(graph);
+                var chart = new ApexCharts(graph, options);
+                chart.render();
+            }
+            function allgraphs(){
+                for (var i = 0; i < indexes.length; i++) {
+                    creategraph(i);
+                }
+            }
+            allgraphs();
+      </script>
+</html>
