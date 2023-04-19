@@ -1,38 +1,44 @@
-<html lang="NL">
-    <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>
-        body { 
-          margin: 0;
-          font-family: Arial, Helvetica, sans-serif;
-        }
-        .header {
-          overflow: hidden;
-          background-color: #6495ED;
-          padding: 50px 30px;
-        }
-        
-        .header a {
-          font-size: 40px;
-          font-weight: bold;
-          color: black;
-        }
-        @media screen and (max-width: 500px) {
-          .header a {
-            font-size: 30px;
-          }
-        }
-        </style>
-        </head>
-        
-        <div class="header">
-          <a class="logo" >Huisenergie</a>
+<html lang="NL">   
+    <body style="background-color: darkcyan;" id="mainbody">  
+        <div class="header" style="  display: grid;
+        grid-template-columns: auto auto auto;
+        padding: 10px;">
+            <p style="text-align:left;" ><img src="settings.png" onclick="randomcolor()" style="height: 50px;" alt="Logo"></p>
+            <p style="text-align:center; " ><img src="Thermoweter.png" onclick="reloadpage()" style="height: 200px;" alt="Logo"></p>
+            <p style="text-align:right;" ><img src="profile.png" style="height: 50px;" alt="Logo"></p>
         </div>
-    <div id="charts">
+        <div style="  display: grid;
+        grid-template-columns: auto auto;
+        padding: 10px;">
+        <div class="main">
+            <img src="huis.png" style="height: 500px;" usemap="#plat" />
+            <map name="plat">
+            <area coords="225,200,25" shape="circle" onclick="meter1()" title="Meter1">
+            <area coords="440,110,25" shape="circle" onclick="meter2()" title="Meter2">
+            <area coords="500,350,25" shape="circle" onclick="meter3()" title="Meter3">
+            </map>
         </div>
+        <div style="  display: grid;
+        grid-template-rows: auto auto;
+        ">
+        <div id="charts">
+        </div>
+
+        </div>
+    </body>   
       <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
         <script>
+            function randomcolor(){
+                const randomColor = Math.floor(Math.random()*16777215).toString(16);
+                document.body.style.backgroundColor = "#" + randomColor;
+                color.innerHTML = "#" + randomColor;
+                document.getElementById("mainbody").style.backgroundColor(randomColor);
+
+            }
+            function reloadpage(){
+                location.reload();
+            }
             var pico =[]
             var indexes = []
             function getdata(tableData) {
@@ -62,12 +68,12 @@
                     window[piconame] = new Array()
                     window[piconame+"time"] = new Array()
                     window[piconame+"temp"] = new Array()
+                    window[piconame+"lucht"] = new Array()
                     window[piconame+"licht"] = new Array()
                 }
 
                 for (var i = 0; i < arrayLength; i++) {
-                    var arrayLength2 = array[i].length -1;
-                    for (var t = 0; t < arrayLength; t++) {
+                    for (var t = 0; t < 3; t++) {
                         piconame = "pico"+String(array[i][3])
                         if(t ==0){
                             piconame1 = piconame+"time";
@@ -80,9 +86,14 @@
                             window[piconame2][indexlength] = [Number(array[i][0]),Number(array[i][t])];
                         }
                         else if(t==2){
-                            piconame3 = piconame+"licht";
+                            piconame3 = piconame+"lucht";
                             var indexlength = window[piconame3].length;
                             window[piconame3][indexlength] = [Number(array[i][0]),Number(array[i][t])];
+                        }
+                        else if(t==3){
+                            piconame4 = piconame+"licht";
+                            var indexlength = window[piconame4].length;
+                            window[piconame4][indexlength] = [Number(array[i][0]),Number(array[i][4])];
                         }
                     
                 }
@@ -92,7 +103,8 @@
                     var piconame = "pico"+z
                     window[piconame][0] = window[piconame+"time"]
                     window[piconame][1] = window[piconame+"temp"]
-                    window[piconame][2] = window[piconame+"licht"]
+                    window[piconame][2] = window[piconame+"lucht"]
+                    window[piconame][3] = window[piconame+"licht"]
                     var indexlength = pico.length;
                     window["pico"][indexlength] = window[piconame]
                 }
@@ -106,78 +118,233 @@
                 }
             });
             function creategraph(index){
-                var minx
-                var maxx
-                if(pico[index][1][0][0]<pico[index][2][0][0]){
-                    minx = pico[index][1][0][0]
+                var gemtemp = []
+                for (var i = 0; i < pico.length; i++) {
+                    var temp = 0
+                    var lucht = 0
+                    for(var o = 0; o < pico[i][1].length; o++){
+                        temp +=pico[i][1][o][1]
+                    }
+                    temptemp = temp/pico[i][1].length
+                    gemtemp.push(temptemp)
                 }
-                else{
-                    minx = pico[index][2][0][0]
+                var tempgemtemp = 0
+                for(var i = 0; i < gemtemp.length; i++){
+                    tempgemtemp += gemtemp[i]
                 }
-                length1 = pico[index][1].length -1
-                length2 = pico[index][2].length -1
-                if(pico[index][1][length1][0]<pico[index][2][length2][0]){
-                    maxx = pico[index][2][length2][0]
-                }
-                else{
-                    maxx = pico[index][1][length1][0]
-                }
+                var truegemtemp = tempgemtemp/gemtemp.length
+
+
+                var gemlucht = 0
+                for(var o = 0; o < pico[index][2].length; o++){
+                        gemlucht +=pico[index][2][o][1]
+                    }
+                var truegemlucht = gemlucht/pico[index][2].length
+
+                var gemlicht = []
+                for(var o = 0; o < pico[index][3].length; o++){
+                        const tempdate = new Date(pico[index][3][o][0])
+                        var hours = tempdate.getHours()
+                        if ((hours>22 && hours<8)){
+                            gemlicht.push(pico[index][3][o][1])
+                        }
+
+                    }
+                //var tempgemlicht = 0
+                //for(var i = 0; i < gemlicht.length; i++){
+                //    tempgemlicht += gemlicht[i]
+                //}
+                //var truegemlicht = tempgemlicht/gemlicht.length
+
                 var options = {
                     chart: {
                         toolbar:{show:false},
                         type: 'line',
+                        height:'250',
+                        width: '800',
                     },
                     series: [{
                         name: 'temperatuur',
                         data: pico[index][1],
-                    },
-                    {
-                        name: 'luchtvochtigheid',
-                        data: pico[index][2],
                     }],
                     xaxis: {
                         type: 'datetime',
-                        min: minx,
-                        max: maxx,
                     },
                     yaxis: [{title:{
                         text: "temperatuur (Celcius)",
                         style: {
-                        fontSize:  '1.5vw',
-                        }
-                    }
-                    },{
-                    opposite: true,
-                    title:{
-                        text: "luchtvochtigheid (%)",
-                        style: {
-                        fontSize:  '1.5vw',
+                        fontSize:  '0.75vw',
                         }
                     }
                     }
                     ],
                     stroke: {
                         curve: 'smooth',
+                        },
+                    tooltip: {
+                        enabled: true,
+                        x: {
+                            show: true,
+                            format: 'd MMM  H : m',
                         }
                     }
-                var spacer = document.createElement("div");
-                spacer.style.height = "4vw";
-                document.getElementById("charts").appendChild(spacer);
+                    }
+                var options2 = {
+                    chart: {
+                        toolbar:{show:false},
+                        type: 'line',
+                        height:'250',
+                        width: '800',
+                    },
+                    series: [
+                    {
+                        name: 'luchtvochtigheid',
+                        data: pico[index][2],
+                    }],
+                    xaxis: {
+                        type: 'datetime',
+                    },
+                    yaxis: [{
+                    title:{
+                        text: "luchtvochtigheid (%)",
+                        style: {
+                        fontSize:  '0.75vw',
+                        }
+                    }
+                    }
+                    ],
+                    stroke: {
+                        curve: 'smooth',
+                        },
+                    tooltip: {
+                        enabled: true,
+                        x: {
+                            show: true,
+                            format: 'd MMM  H : m',
+                        }
+                    }
+                    }   
+                    var options3 = {
+                    chart: {
+                        toolbar:{show:false},
+                        type: 'line',
+                        height:'200',
+                        width: '550',
+                    },
+                    series: [
+                    {
+                        name: 'lichtsterkte',
+                        data: pico[index][3],
+                    }],
+                    xaxis: {
+                        type: 'datetime',
+                    },
+                    yaxis: [{
+                    title:{
+                        text: "lichtsterkte (lux)",
+                        style: {
+                        fontSize:  '0.75vw',
+                        }
+                    }
+                    }
+                    ],
+                    stroke: {
+                        curve: 'smooth',
+                        },
+                    tooltip: {
+                        enabled: true,
+                        x: {
+                            show: true,
+                            format: 'd MMM  H : m',
+                        }
+                    }
+                    } 
                 var chartinfo = document.createElement("h1");
                 chartinfo.style.fontSize = "4vw";
-                chartinfo.innerText = indexes[index]
+                chartinfo.innerText = "Meter "+ indexes[index]
                 chartinfo.style.textAlign = "center";
+                chartinfo.style.marginBlockEnd = "0px";
+                chartinfo.style.marginBlockStart = "0px";
                 document.getElementById("charts").appendChild(chartinfo);
+
+                if(Math.abs(gemtemp[index]-truegemtemp)>1){
+                    var chartinfo = document.createElement("p");
+                chartinfo.style.fontSize = "1.5vw";
+                chartinfo.style.color = "red";
+                chartinfo.style.fontWeight = "bold";
+                chartinfo.innerText = "Deze meter wijkt relatief veel af van de gemiddelde temperatuur van de woning, het wordt aangeraden te controleren of de locatie van deze meter warmte genereerd of verliest."
+                chartinfo.style.textAlign = "center";
+                chartinfo.style.marginBlockEnd = "0px";
+                chartinfo.style.marginBlockStart = "0px";
+                document.getElementById("charts").appendChild(chartinfo);
+                }
+
+                if(truegemlucht>60){
+                    var chartinfo = document.createElement("p");
+                chartinfo.style.fontSize = "1.5vw";
+                chartinfo.style.color = "red";
+                chartinfo.style.fontWeight = "bold";
+                chartinfo.innerText = "De locatie van deze meter heeft een relatief hoge luchtvochtigheid, controleer of er dergelijke bronnen van luchtvochtigheid aanwezig zijn."
+                chartinfo.style.textAlign = "center";
+                chartinfo.style.marginBlockEnd = "0px";
+                chartinfo.style.marginBlockStart = "0px";
+                document.getElementById("charts").appendChild(chartinfo);
+                }
+
+                if(truegemlucht<30){
+                    var chartinfo = document.createElement("p");
+                chartinfo.style.fontSize = "1.5vw";
+                chartinfo.style.color = "red";
+                chartinfo.style.fontWeight = "bold";
+                chartinfo.innerText = "De locatie van deze meter heeft een relatief lage luchtvochtigheid, de aanschaf van een Humidifier wordt geadviseerd."
+                chartinfo.style.textAlign = "center";
+                chartinfo.style.marginBlockEnd = "0px";
+                chartinfo.style.marginBlockStart = "0px";
+                document.getElementById("charts").appendChild(chartinfo);
+                }
+
+                //if(truegemlicht>400){
+                //    var chartinfo = document.createElement("p");
+                //chartinfo.style.fontSize = "1.5vw";
+                //chartinfo.style.color = "red";
+                //chartinfo.style.fontWeight = "bold";
+                //chartinfo.innerText = "De locatie van deze meter heeft een relatief hoge lichtinval 'savonds, het wordt geadviseerd te controleren of apparaten niet onnodig licht geven."
+                //chartinfo.style.textAlign = "center";
+                //chartinfo.style.marginBlockEnd = "0px";
+                //chartinfo.style.marginBlockStart = "0px";
+                //document.getElementById("charts").appendChild(chartinfo);
+                //}
+
                 var graph = document.createElement("div");
                 document.getElementById("charts").appendChild(graph);
                 var chart = new ApexCharts(graph, options);
                 chart.render();
+
+                var graph2 = document.createElement("div");
+                document.getElementById("charts").appendChild(graph2);
+                var chart2 = new ApexCharts(graph2, options2);
+                chart2.render();
+
+                //var graph3 = document.createElement("div");
+                //document.getElementById("charts").appendChild(graph3);
+                //var chart3 = new ApexCharts(graph3, options3);
+                //chart3.render();
+
             }
-            function allgraphs(){
-                for (var i = 0; i < indexes.length; i++) {
-                    creategraph(i);
-                }
+            function meter1(){
+                const chart = document.getElementById("charts");
+                chart.innerHTML = '';
+                creategraph(0);
             }
-            allgraphs();
+            function meter2(){
+                const chart = document.getElementById("charts");
+                chart.innerHTML = '';
+                creategraph(1);
+            }
+            function meter3(){
+                const chart = document.getElementById("charts");
+                chart.innerHTML = '';
+                creategraph(2);
+            }
       </script>
 </html>
